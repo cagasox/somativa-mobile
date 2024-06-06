@@ -1,140 +1,118 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'cadastrocliente.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:formativa/main.dart';
+import 'package:formativa/cadastro.dart';
 
 class Login extends StatefulWidget {
-  const Login({super.key});
+  Login({Key? key});
 
   @override
   State<Login> createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
-  TextEditingController userController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  bool exibirSenha = false;
-  String? loginError;
+  final TextEditingController user = TextEditingController();
+  final TextEditingController senha = TextEditingController();
+  List<dynamic>? usuarios;
 
-  Future<void> _verificarLogin() async {
-    String url = "http://10.109.83.10:3000/usuarios";
-    http.Response resposta = await http.get(Uri.parse(url));
+  final String url = 'http://10.109.83.15:3000/usuarios';
 
-    if (resposta.statusCode == 200) {
-      List<dynamic> usuarios = json.decode(resposta.body);
+  Future<void> _verificarlogin() async {
+    try {
+      final http.Response response = await http.get(Uri.parse(url));
 
-      bool usuarioEncontrado = usuarios.any((usuario) =>
-          usuario['login'] == userController.text &&
-          usuario['senha'] == passwordController.text);
-
-      if (usuarioEncontrado) {
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
         setState(() {
-          loginError = null;
+          usuarios = jsonResponse['usuarios'];
         });
-        print("Usuário encontrado");
-        // Navegue para a próxima tela ou faça algo mais
+
+        for (var usuario in usuarios!) {
+          if (usuario['nome'] == user.text && usuario['password'] == senha.text) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => TelaView()));
+            return;
+          }
+        }
+
+        print("Usuário ou senha incorretos.");
       } else {
-        setState(() {
-          loginError = "Usuário ou senha inválidos";
-        });
+        print("Erro ao carregar usuários: ${response.statusCode}");
       }
-    } else {
-      setState(() {
-        loginError = "Erro ao conectar ao servidor";
-      });
+    } catch (e) {
+      print("Erro ao verificar login: $e");
     }
+  }
+
+  void _navigateToCadastro() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TelaCadastro()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 46, 46, 46),
       appBar: AppBar(
-        title: Text("App Mercado"),
+        foregroundColor: const Color.fromARGB(255, 255, 0, 0),
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+        title: const Text("meteflix"),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              width: 300,
-              height: 300,
+              width: 200,
+              height: 200,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      keyboardType: TextInputType.name,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        icon: Icon(Icons.people_alt_outlined),
-                        iconColor: Colors.blue,
-                        hintText: "Digite seu nome",
+                  TextField(
+                    keyboardType: TextInputType.name,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                        borderSide: BorderSide(width: 50),
                       ),
-                      controller: userController,
+                      icon: Icon(Icons.person_sharp),
+                      labelText: "Digite o usuário",
+                      labelStyle: TextStyle(backgroundColor: Color.fromARGB(255, 46, 46, 46)),
                     ),
+                    controller: user,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      keyboardType: TextInputType.visiblePassword,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        icon: Icon(Icons.key),
-                        iconColor: Colors.blue,
-                        hintText: "Digite sua senha",
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            exibirSenha ? Icons.visibility : Icons.visibility_off,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              exibirSenha = !exibirSenha;
-                            });
-                          },
-                        ),
+                  TextField(
+                    keyboardType: TextInputType.text,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(50)),
+                        borderSide: BorderSide(width: 50),
                       ),
-                      obscureText: !exibirSenha,
-                      obscuringCharacter: "*",
-                      controller: passwordController,
+                      labelText: "Digite sua senha",
+                      icon: Icon(Icons.key),
                     ),
+                    controller: senha,
+                    obscureText: true,
+                    obscuringCharacter: "*",
                   ),
-                  if (loginError != null)
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        loginError!,
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
                 ],
               ),
             ),
-            ElevatedButton(onPressed: _verificarLogin, child: Text("Entrar")),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => Cadastrocliente()));
+                _verificarlogin().then((_) {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => TelaView()));
+                });
               },
-              child: Text("Cadastrar"),
+              child: const Text("Entrar", style: TextStyle(color: Color.fromARGB(255, 255, 0, 0))),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _navigateToCadastro,
+              child: const Text("Cadastro", style: TextStyle(color: Color.fromARGB(255, 255, 0, 0))),
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-class Usuario {
-  String id;
-  String login;
-  String senha;
-  Usuario(this.id, this.login, this.senha);
-
-  factory Usuario.fromJson(Map<String, dynamic> json) {
-    return Usuario(json["id"], json["login"], json["senha"]);
   }
 }
