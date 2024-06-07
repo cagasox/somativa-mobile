@@ -13,33 +13,34 @@ class _TelaCadastroState extends State<TelaCadastro> {
   TextEditingController nomeController = TextEditingController();
   TextEditingController senhaController = TextEditingController();
 
-  final String url = 'http://10.109.83.15:3000/usuarios';
+  final String url = 'http://10.109.83.8:3000/usuarios';
 
-  void cadastrarUsuario() async {
-    String nome = nomeController.text;
-    String senha = senhaController.text;
+  final String baseUrl = 'http://10.109.83.8:3000';
 
-    Map<String, String> novoUsuario = {
-      'nome': nome,
-      'password': senha,
-    };
-
-    http.Response response = await http.post(
-      Uri.parse(url),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(novoUsuario),
-    );
-
-    if (response.statusCode == 201) {
-      print('Usuário cadastrado');
-      Navigator.pop(context); 
-    } else {
-      
-      print('Erro ao cadastrar usuário. Código de status: ${response.statusCode}');
+  Future<void> createUser(String username, String password, BuildContext context) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/usuarios'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode({'nome': username, 'senha': password}),
+      );
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Usuário criado com sucesso!'),
+        ));
+        Navigator.pushReplacementNamed(context, '/');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Falha ao criar usuário'),
+        ));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Erro ao criar usuário: $e'),
+      ));
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +70,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: cadastrarUsuario,
-              child: Text('Cadastrar'),
+              onPressed: () {
+                createUser(nomeController.text, senhaController.text, context);
+              },
+              child: Text('Cadastrar', style: TextStyle(color: Color.fromARGB(255, 255, 0, 0))),
             ),
           ],
         ),

@@ -1,5 +1,19 @@
 {
   "usuarios": [
-
+    {
+      "id": "1",
+      "nome": "pedro",
+      "password": "1234"
+    },
+    {
+      "id": "f2cd",
+      "nome": "cigano",
+      "senha": "1234"
+    },
+    {
+      "id": "d947",
+      "nome": "diego",
+      "senha": "1234"
+    }
   ]
 }

@@ -16,7 +16,7 @@ class _LoginState extends State<Login> {
   final TextEditingController senha = TextEditingController();
   List<dynamic>? usuarios;
 
-  final String url = 'http://10.109.83.15:3000/usuarios';
+  final String url = 'http://10.109.83.8:3000/usuarios';
 
   Future<void> _verificarlogin() async {
     try {
@@ -30,7 +30,7 @@ class _LoginState extends State<Login> {
 
         for (var usuario in usuarios!) {
           if (usuario['nome'] == user.text && usuario['password'] == senha.text) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => TelaView()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => MoviesScreen()));
             return;
           }
         }
@@ -51,7 +51,7 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 46, 46, 46),
+      backgroundColor: Color.fromARGB(255, 58, 58, 58),
       appBar: AppBar(
         foregroundColor: const Color.fromARGB(255, 255, 0, 0),
         backgroundColor: const Color.fromARGB(255, 0, 0, 0),
@@ -76,7 +76,7 @@ class _LoginState extends State<Login> {
                       ),
                       icon: Icon(Icons.person_sharp),
                       labelText: "Digite o usuário",
-                      labelStyle: TextStyle(backgroundColor: Color.fromARGB(255, 46, 46, 46)),
+                      labelStyle: TextStyle(backgroundColor: Color.fromARGB(255, 211, 209, 209)),
                     ),
                     controller: user,
                   ),
@@ -100,7 +100,7 @@ class _LoginState extends State<Login> {
             ElevatedButton(
               onPressed: () {
                 _verificarlogin().then((_) {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => TelaView()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => MoviesScreen()));
                 });
               },
               child: const Text("Entrar", style: TextStyle(color: Color.fromARGB(255, 255, 0, 0))),

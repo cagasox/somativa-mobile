@@ -9,121 +9,66 @@ void main() {
   ));
 }
 
-class TelaView extends StatefulWidget {
-  const TelaView({Key? key}) : super(key: key);
-
+class MoviesScreen extends StatefulWidget {
   @override
-  _TelaViewState createState() => _TelaViewState();
+  _MoviesScreenState createState() => _MoviesScreenState();
 }
 
-class _TelaViewState extends State<TelaView> {
-  late String url = "https://raw.githubusercontent.com/danielvieira95/DESM-2/master/filmes.json";
-  List<Filme> filmes = [];
+class _MoviesScreenState extends State<MoviesScreen> {
+  List<dynamic> filmes = [];
 
   @override
   void initState() {
     super.initState();
-    _getDados();
+    loadFilmes();
   }
 
-  _getDados() async {
-    try {
-      http.Response resposta = await http.get(Uri.parse(url));
-      if (resposta.statusCode == 200) {
-        var dados = jsonDecode(resposta.body) as List;
+  void loadFilmes() {
+    http.get(Uri.parse('https://raw.githubusercontent.com/danielvieira95/DESM-2/master/filmes.json'))
+        .then((response) {
+      if (response.statusCode == 200) {
         setState(() {
-          filmes = dados.map((json) => Filme.fromJson(json)).toList();
+          filmes = jsonDecode(response.body);
         });
       } else {
-        throw Exception('Erro ao obter os dados da API');
+        setState(() {
+          filmes = [];
+        });
       }
-    } catch (e) {
-      print('Erro: $e');
-    }
+    }).catchError((error) {
+      setState(() {
+        filmes = [];
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    Future.delayed(Duration(seconds: 2));
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Visualizar Filmes"),
+        title: Text('Movies'),
       ),
-      body: Center(
-        child: ListView(
-          scrollDirection: Axis.vertical,
-          children: [
-            Text(
-              " Consumo de API ",
-              style: TextStyle(fontSize: 18),
+      body: ListView.builder(
+        itemCount: filmes.length,
+        itemBuilder: (context, index) {
+          var filme = filmes[index];
+          return ListTile(
+            leading: Image.network(filme['imagem']),
+            title: Text(filme['nome']),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Duração: ${filme['duração']}'),
+                Text('Ano de Lançamento: ${filme['ano de lançamento']}'),
+                Text('Nota: ${filme['nota']}'),
+              ],
             ),
-            Column(
-              children: filmes.map((filme) {
-                return Card(
-                  margin: EdgeInsets.all(10),
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Image.network(
-                          filme.imagem,
-                          width: double.infinity,
-                          height: 250, // Altura da imagem
-                          fit: BoxFit.cover, // Ajuste a imagem para cobrir toda a área do widget
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          filme.nome,
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          "Duração: ${filme.duracao}",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        Text(
-                          "Ano de Lançamento: ${filme.anoLancamento}",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        Text(
-                          "Nota: ${filme.nota}",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
 
-class Filme {
-  final String nome;
-  final String imagem;
-  final String duracao;
-  final String anoLancamento;
-  final String nota;
-
-  Filme({
-    required this.nome,
-    required this.imagem,
-    required this.duracao,
-    required this.anoLancamento,
-    required this.nota
-  });
-
-  factory Filme.fromJson(Map<String, dynamic> json) {
-    return Filme(
-      nome: json['Nome'],
-      imagem: json['Imagem'],
-      duracao: json['Duração'],
-      anoLancamento: json['Ano de lançamento'],
-      nota: json['Nota'],
-    );
-  }
-}
